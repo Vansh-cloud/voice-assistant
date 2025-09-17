@@ -19,7 +19,6 @@ const commands = {
     'netflix': { url: 'https://netflix.com', name: 'Netflix' },
     'spotify': { url: 'https://spotify.com', name: 'Spotify' },
     'linkedin': { url: 'https://linkedin.com', name: 'LinkedIn' },
-    'twitter': { url: 'https://twitter.com', name: 'Twitter' },
     'weather': { url: 'https://weather.com', name: 'Weather' },
     'news': { url: 'https://news.google.com', name: 'Google News' },
     'maps': { url: 'https://maps.google.com', name: 'Google Maps' },
@@ -34,6 +33,17 @@ const commands = {
     'yahoo': { url: 'https://yahoo.com', name: 'Yahoo' },
 };
 
+function speak(text) {
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1.0; // Adjust speech speed
+        utterance.volume = 1.0; // Adjust volume
+        window.speechSynthesis.speak(utterance);
+    } else {
+        console.warn('Text-to-speech not supported in this browser.');
+    }
+}
+
 function addMessage(message, isUser = false) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
@@ -47,9 +57,10 @@ function addMessage(message, isUser = false) {
                 charIndex++;
             } else {
                 clearInterval(typingEffect);
+                speak(fullMessage);
             }
             chatArea.scrollTop = chatArea.scrollHeight;
-        }, 20); // Typing speed
+        }, 20);
     } else {
         messageDiv.textContent = message;
     }
@@ -60,8 +71,8 @@ function addMessage(message, isUser = false) {
 async function processCommand(input) {
     const lowerInput = input.toLowerCase().trim();
 
-    // New logic to handle video playback requests
-    const videoMatch = lowerInput.match(/^(play|watch|open|khol) (.+) (on|from) youtube/);
+    // Command to play a video on YouTube
+    const videoMatch = lowerInput.match(/(play|watch|open|khol)\s(.+)\s(on|from) youtube/);
     if (videoMatch) {
         const videoTitle = videoMatch[2].trim();
         const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(videoTitle)}`;
@@ -69,25 +80,22 @@ async function processCommand(input) {
         return `Searching for and opening **${videoTitle}** on YouTube.`;
     }
 
-    // Existing "open" or "go to" commands
-    const openMatch = lowerInput.match(/^(open|go to)\s(.+)/);
+    // Command to open a specific website
+    const openMatch = lowerInput.match(/(open|go to|khol)\s(.+)/);
     if (openMatch) {
         const appName = openMatch[2].trim();
         const appData = commands[appName];
         if (appData) {
             window.open(appData.url, '_blank');
             return `Opening ${appData.name} for you!`;
-        } else {
-            return `Sorry, I don't have a command to open "${appName}".`;
         }
     }
-
-    // Existing "search and go to" combined commands
-    const searchAndGoToMatch = lowerInput.match(/^search for (.+) and go to (.+)/);
+    
+    // Command to search and navigate to a website
+    const searchAndGoToMatch = lowerInput.match(/search for (.+) and go to (.+)/);
     if (searchAndGoToMatch) {
         const query = searchAndGoToMatch[1].trim();
         const site = searchAndGoToMatch[2].trim();
-        
         const siteData = commands[site];
         if (siteData) {
             window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
@@ -95,30 +103,42 @@ async function processCommand(input) {
                 window.open(siteData.url, '_blank');
             }, 1000); 
             return `Searching for **${query}** and opening **${siteData.name}** for you!`;
-        } else {
-            return `Sorry, I can't find the website **${site}**. Please try a different one.`;
         }
     }
 
-    // Existing direct search commands
-    const searchMatch = lowerInput.match(/^(search for|look up|find|what is|who is|where is|when is|how is|can you tell me|can you find|can you|${query})\s(.+)/);
+    // Direct search query processing
+    const searchKeywords = ['what is', 'who is', 'where is', 'when is', 'how is', 'can you tell me', 'can you find', 'can you', 'kya hai'];
+    if (!searchKeywords.some(keyword => lowerInput.startsWith(keyword))) {
+        window.open(`https://www.google.com/search?q=${encodeURIComponent(lowerInput)}`, '_blank');
+        return `Searching for **${input}** on Google.`;
+    }
+
+    // Command to perform a general search with keywords
+    const searchMatch = lowerInput.match(/(search for|look up|find|what is|who is|where is|when is|how is|can you tell me|can you find|can you|kya hai)\s(.+)/);
     if (searchMatch) {
         const query = searchMatch[2].trim();
         window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
         return `I've performed a search for **${query}** on Google.`;
     }
 
-    // Other commands (time, date, etc.)
+    // Time and Date commands
     if (lowerInput.includes('time') || lowerInput.includes('what time')) {
-        return `Current time: ${new Date().toLocaleTimeString()}`;
+        return `Current time: ${new Date().toLocaleTimeString('en-IN')}`;
     }
 
     if (lowerInput.includes('date') || lowerInput.includes('today')) {
-        return `Today's date: ${new Date().toLocaleDateString()}`;
+        return `Today's date: ${new Date().toLocaleDateString('en-IN')}`;
+    }
+
+    // Direct app commands (without "open")
+    const appData = commands[lowerInput];
+    if (appData) {
+        window.open(appData.url, '_blank');
+        return `Opening ${appData.name} for you!`;
     }
 
     // Default response for unhandled commands
-    return "I can't help with that request yet. Try commands like 'open google', 'search for Galileo Galilei', or 'search for Galileo Galilei and go to Wikipedia'.";
+    return "I can't help with that request yet. Try commands like 'open google', 'search for Galileo Galilei', or 'search for Galileo Galilei and go to Wikipedia'. You can also ask me to play a video on YouTube by saying, 'play [video title] on YouTube'.";
 }
 
 async function sendMessage() {
@@ -140,7 +160,7 @@ function startVoiceRecognition() {
         const recognition = new webkitSpeechRecognition();
         recognition.continuous = false;
         recognition.interimResults = false;
-        recognition.lang = 'en-US';
+        recognition.lang = 'en-IN';
 
         recognition.start();
         addMessage("Listening...", false);
@@ -155,7 +175,7 @@ function startVoiceRecognition() {
             addMessage("Sorry, I couldn't hear you clearly. Please try again.", false);
         };
     } else {
-        addMessage("Voice recognition is not supported in your browser.", false);
+        addMessage("Voice recognition is not supported in this browser.", false);
     }
 }
 
