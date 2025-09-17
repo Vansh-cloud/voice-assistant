@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced AI Assistant</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AI Assistant ✨</h1>
+            <span class="status">Online</span>
+        </div>
+        
+        <div class="chat-area" id="chatArea">
+            <div class="message ai-message">
+                Hello! I'm your AI assistant. You can ask me to open applications or websites, search for information, and more. Try asking me "what is the time?" or "open google".
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <input type="text" class="input-field" id="userInput" placeholder="Type your command or question...">
+            <button class="voice-btn" onclick="startVoiceRecognition()"><i class="material-icons">mic</i></button>
+            <button class="send-btn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
