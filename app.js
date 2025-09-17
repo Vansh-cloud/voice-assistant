@@ -61,7 +61,7 @@ async function processCommand(input) {
     const lowerInput = input.toLowerCase().trim();
 
     // New logic to handle video playback requests
-    const videoMatch = lowerInput.match(/(play|watch|open|khol) (.+) (on|from) youtube/);
+    const videoMatch = lowerInput.match(/^(play|watch|open|khol) (.+) (on|from) youtube/);
     if (videoMatch) {
         const videoTitle = videoMatch[2].trim();
         const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(videoTitle)}`;
@@ -83,7 +83,7 @@ async function processCommand(input) {
     }
 
     // Existing "search and go to" combined commands
-    const searchAndGoToMatch = lowerInput.match(/search for (.+) and go to (.+)/);
+    const searchAndGoToMatch = lowerInput.match(/^search for (.+) and go to (.+)/);
     if (searchAndGoToMatch) {
         const query = searchAndGoToMatch[1].trim();
         const site = searchAndGoToMatch[2].trim();
@@ -101,7 +101,7 @@ async function processCommand(input) {
     }
 
     // Existing direct search commands
-    const searchMatch = lowerInput.match(/"(search for|look up|find|what is|who is|where is|when is|how is|can you tell me|can you find|can you|${query})"\s(.+)/);
+    const searchMatch = lowerInput.match(/^(search for|look up|find|what is|who is|where is|when is|how is|can you tell me|can you find|can you|${query})\s(.+)/);
     if (searchMatch) {
         const query = searchMatch[2].trim();
         window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
