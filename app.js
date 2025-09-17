@@ -101,7 +101,7 @@ async function processCommand(input) {
     }
 
     // Existing direct search commands
-    const searchMatch = lowerInput.match(/`(search for|look up|find|what is|who is|where is|when is|how is|can you tell me|can you find|can you|${query})`\s(.+)/);
+    const searchMatch = lowerInput.match(/"(search for|look up|find|what is|who is|where is|when is|how is|can you tell me|can you find|can you|${query})"\s(.+)/);
     if (searchMatch) {
         const query = searchMatch[2].trim();
         window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
